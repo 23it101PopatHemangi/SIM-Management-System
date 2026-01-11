@@ -8,7 +8,7 @@
   <link href="https://unpkg.com/boxicons@2.1.1/css/boxicons.min.css" rel="stylesheet">
   <script>
     const user = JSON.parse(localStorage.getItem('sim_user'));
-    if (!user || user.role !== 'hod') {
+    if (user.role.toLowerCase() !== "hod") {
       window.location.href = 'login.html';
     }
   </script>

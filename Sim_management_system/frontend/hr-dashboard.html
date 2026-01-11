@@ -21,6 +21,19 @@
   </script>
   <link href="https://unpkg.com/boxicons@2.1.1/css/boxicons.min.css" rel="stylesheet" />
 </head>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const user = JSON.parse(localStorage.getItem("sim_user"));
+
+  if (!user || user.role.toLowerCase() !== "hr") {
+    alert("⛔ Access Denied. Only HR can access this page.");
+    window.location.href = "/login.html";
+  }
+});
+</script>
+
+
 <body class="min-h-screen flex bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-white">
   <!-- Sidebar -->
   <aside class="w-64 bg-[#002f4b] text-white flex flex-col py-6 px-4">

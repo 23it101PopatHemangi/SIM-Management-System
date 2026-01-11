@@ -30,12 +30,14 @@
 
 </head>
 <script>
+  document.addEventListener("DOMContentLoaded", () => {
   const user = JSON.parse(localStorage.getItem("sim_user"));
 
   if (!user || user.role !== "admin") {
     alert("⛔ Access Denied. Only Admins can access this page.");
     window.location.href = "/login.html";
   }
+  });
 </script>
 
 

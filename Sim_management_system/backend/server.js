@@ -933,7 +933,9 @@ app.post('/api/login', async (req, res) => {
     if (!ok) {
       return res.status(400).json({ error: 'Invalid credentials' });
     }
-
+      
+    // ✅ NORMALIZE ROLE HERE
+    const role = user.role.toLowerCase();
     const token = jwt.sign(
       { id: user._id, email: user.email, role: user.role },
       process.env.JWT_SECRET,

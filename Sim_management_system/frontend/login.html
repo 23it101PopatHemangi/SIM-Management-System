@@ -85,7 +85,7 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
 });
 </script> -->
 
- <script>
+ <!-- <script>
 document.getElementById("loginForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   const formData = Object.fromEntries(new FormData(e.target));
@@ -122,7 +122,65 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
   }
 });
 
+</script> -->
+
+<script>
+document.getElementById("loginForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const formData = Object.fromEntries(new FormData(e.target));
+
+  let res, text, data;
+
+  try {
+    res = await fetch("https://sim-management-system-backend.onrender.com/api/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData)
+    });
+
+    text = await res.text();      // 👈 SAFEST way
+    data = JSON.parse(text);      // try parsing JSON
+
+  } catch (err) {
+    console.error("❌ Network / Parse error:", err);
+    alert("Server is unreachable. Please try again later.");
+    return;
+  }
+
+  if (!res.ok) {
+    alert(data?.error || "Login failed");
+    return;
+  }
+
+  /* ---------- SUCCESS ---------- */
+  alert(data.message || "Login successful");
+
+  // ✅ Save auth
+  localStorage.setItem("token", data.token);
+  localStorage.setItem(
+    "sim_user",
+    JSON.stringify({ email: formData.email, role: data.role })
+  );
+
+  // ✅ Handle ?redirect= (HOD / HR / Admin mail links)
+  const params = new URLSearchParams(window.location.search);
+  const redirect = params.get("redirect");
+  if (redirect) {
+    window.location.href = `/${redirect}`;
+    return;
+  }
+
+  // ✅ Role-based dashboard routing
+  const role = data.role.toLowerCase();
+  if      (role === "employee") window.location.href = "/employee-dashboard.html";
+  else if (role === "hr")       window.location.href = "/hr-dashboard.html";
+  else if (role === "admin")    window.location.href = "/admin-dashboard.html";
+  else if (role === "hod")      window.location.href = "/hod-dashboard.html";
+  else                          window.location.href = "/login.html";
+});
 </script>
+
 
 </body>
 </html>

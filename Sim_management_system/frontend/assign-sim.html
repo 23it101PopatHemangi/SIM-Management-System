@@ -150,62 +150,110 @@
 <!-- API base config -->
 <script src="config.js"></script>
 
+
 <script>
 const token = localStorage.getItem("token");
 
-async function loadAvailableSIMs() {
-  try {
-    const res = await fetch(`${API_BASE_URL}/api/inventory`, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    });
+/* 🔐 ADMIN GUARD */
+const user = JSON.parse(localStorage.getItem("sim_user") || "{}");
+if (user.role?.toLowerCase() !== "admin") {
+  alert("⛔ Only Admin can access Assign SIM");
+  window.location.href = "/login.html";
+}
 
-    const sims = await res.json();
-    const table = document.getElementById("simTable");
+/* 1️⃣ Load requests that reached ADMIN */
+async function loadRequests() {
+  const select = document.getElementById("requestSelect");
+  select.innerHTML = `<option value="">-- Choose Request --</option>`;
 
-    table.innerHTML = "";
+  const res = await fetch(`${API_BASE_URL}/api/requests`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
 
-    // ✅ ONLY AVAILABLE SIMs
-    const availableSIMs = sims.filter(
-      sim => sim.status === "Available"
-    );
+  const data = await res.json();
 
-    if (availableSIMs.length === 0) {
-      table.innerHTML = `
-        <tr>
-          <td colspan="4" class="p-4 text-center text-gray-500">
-            No available SIMs
-          </td>
-        </tr>`;
-      return;
-    }
+  const adminPending = data.filter(r => r.status === "Admin Pending");
 
-    availableSIMs.forEach(sim => {
-      const row = `
-        <tr>
-          <td class="p-2">${sim.simNumber}</td>
-          <td class="p-2">${sim.provider}</td>
-          <td class="p-2">${sim.status}</td>
-          <td class="p-2">
-            <button
-              onclick="assignSIM('${sim._id}')"
-              class="text-blue-600 hover:underline">
-              Assign
-            </button>
-          </td>
-        </tr>
-      `;
-      table.insertAdjacentHTML("beforeend", row);
-    });
+  adminPending.forEach(r => {
+    const opt = document.createElement("option");
+    opt.value = r._id;
+    opt.textContent = `${r.employeeName} (${r.mobile})`;
+    select.appendChild(opt);
+  });
 
-  } catch (err) {
-    console.error("❌ Failed to load SIMs:", err);
+  // Auto-select from Admin Dashboard
+  const saved = localStorage.getItem("assignRequestId");
+  if (saved) {
+    select.value = saved;
+    localStorage.removeItem("assignRequestId");
   }
 }
 
-window.onload = loadAvailableSIMs;
+/* 2️⃣ Load AVAILABLE SIMs */
+async function loadSIMs() {
+  const select = document.getElementById("simSelect");
+  select.innerHTML = `<option value="">-- Choose SIM --</option>`;
+
+  const res = await fetch(`${API_BASE_URL}/api/inventory`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+
+  const sims = await res.json();
+
+  sims
+    .filter(s => s.status === "Available")
+    .forEach(sim => {
+      const opt = document.createElement("option");
+      opt.value = sim._id;
+      opt.textContent = `${sim.simNumber} - ${sim.provider}`;
+      select.appendChild(opt);
+    });
+}
+
+/* 3️⃣ ASSIGN SIM */
+document.getElementById("assignSimForm").addEventListener("submit", async e => {
+  e.preventDefault();
+
+  const requestId = requestSelect.value;
+  const simId = simSelect.value;
+  const msg = document.getElementById("message");
+
+  if (!requestId || !simId) {
+    msg.textContent = "❌ Select request and SIM";
+    msg.className = "text-red-500";
+    return;
+  }
+
+  const res = await fetch(`${API_BASE_URL}/api/inventory/assign`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify({ requestId, simId })
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    msg.textContent = "❌ " + data.error;
+    msg.className = "text-red-500";
+    return;
+  }
+
+  msg.textContent = "✅ SIM Assigned Successfully";
+  msg.className = "text-green-500";
+
+  loadRequests();
+  loadSIMs();
+  assignSimForm.reset();
+});
+
+/* INIT */
+loadRequests();
+loadSIMs();
 </script>
+
 
 </body>
 </html>

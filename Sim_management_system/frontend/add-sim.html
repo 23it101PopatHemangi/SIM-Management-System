@@ -65,7 +65,7 @@
     <div id="responseMsg" class="text-sm text-center mt-2"></div>
   </div>
 
-  <script>
+  <!-- <script>
     const token = localStorage.getItem('token');
 
     document.getElementById('addSimForm').addEventListener('submit', async (e) => {
@@ -89,4 +89,31 @@
   </script>
 
 </body>
-</html>
+</html> -->
+  <!-- API base config -->
+  <script src="config.js"></script>
+
+  <script>
+    const token = localStorage.getItem('token');
+
+    document.getElementById('addSimForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = Object.fromEntries(new FormData(e.target).entries());
+
+      const res = await fetch(`${API_BASE_URL}/api/inventory`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(formData)
+      });
+
+      const data = await res.json();
+      const msg = document.getElementById('responseMsg');
+      msg.textContent = res.ok
+        ? '✅ SIM added successfully!'
+        : `❌ ${data.error || 'Failed to add SIM'}`;
+      msg.className = res.ok ? 'text-green-500' : 'text-red-500';
+    });
+  </script>

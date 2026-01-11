@@ -146,7 +146,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
 
-  <script>
+  <!-- <script>
     const token = localStorage.getItem("token");
     if (!token) {
       alert("Please login first.");
@@ -200,6 +200,67 @@
         table.search(this.value).draw();
       });
     });
-  </script>
+  </script> -->
+
+  <script src="config.js"></script>
+
+<script>
+  const token = localStorage.getItem("token");
+  if (!token) {
+    alert("Please login first.");
+    window.location.href = "/login.html";
+  }
+
+  $(document).ready(async function () {
+    const tokenPayload = JSON.parse(atob(token.split('.')[1]));
+    const loggedInEmail = tokenPayload.email;
+
+    const res = await fetch(`${API_BASE_URL}/api/requests`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    const data = await res.json();
+
+    const table = $('#simTable').DataTable({
+      dom: 'Bfrtip',
+      buttons: ['excelHtml5', 'pdfHtml5', 'print'],
+      pageLength: 5
+    });
+
+    function getStatusColor(status) {
+      if (status === "SIM Assigned") return "bg-green-200 text-green-800";
+      if (status === "Approved by Admin") return "bg-yellow-200 text-yellow-800";
+      if (status === "Approved by HR") return "bg-blue-200 text-blue-800";
+      if (status === "Admin Pending") return "bg-red-200 text-red-800";
+      if (status === "Approved") return "bg-emerald-200 text-emerald-800";
+      return "bg-gray-200 text-gray-800";
+    }
+
+    data.forEach(req => {
+      if (req.email !== loggedInEmail) return;
+
+      const simStatus = req.assignedSim
+        ? `<span class='text-green-600 font-medium'>${req.assignedSim}</span>`
+        : `<span class='text-gray-400 italic'>Pending</span>`;
+
+      const statusLabel =
+        `<span class="px-2 py-1 rounded ${getStatusColor(req.status)}">${req.status}</span>`;
+
+      table.row.add([
+        req.employeeName,
+        req.mobile,
+        req.requestType,
+        statusLabel,
+        simStatus,
+        new Date(req.createdAt).toLocaleDateString()
+      ]).draw(false);
+    });
+
+    $('#customSearch').on('keyup', function () {
+      table.search(this.value).draw();
+    });
+  });
+</script>
+
 </body>
 </html>

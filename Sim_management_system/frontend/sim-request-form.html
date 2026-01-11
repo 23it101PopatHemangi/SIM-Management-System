@@ -173,7 +173,7 @@
     </form>
   </div>
 
-  <script>
+  <!-- <script>
     const form = document.getElementById('simRequestForm');
 
     form.addEventListener('submit', async (e) => {
@@ -198,6 +198,52 @@
         alert(result.error || 'Error occurred');
       }
     });
-  </script>
+  </script> -->
+
+  <script src="config.js"></script>
+
+<script>
+  const res = await fetch(`${API_BASE_URL}/api/requests/${reqId}`, {
+  headers: { Authorization: `Bearer ${token}` }
+});
+
+  const form = document.getElementById('simRequestForm');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('Unauthorized');
+      return;
+    }
+
+    const formData = new FormData(form);
+    const id = document.getElementById('requestId').value;
+
+    const res = await fetch(
+      id
+        ? `${API_BASE_URL}/api/requests/${id}/forward`
+        : `${API_BASE_URL}/api/requests`,
+      {
+        method: id ? 'PUT' : 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`
+        },
+        body: formData
+      }
+    );
+
+    const result = await res.json();
+
+    if (res.ok) {
+      alert(id ? 'Forwarded to Admin' : 'Request Submitted');
+      window.location.href = "/employee-dashboard.html";
+    } else {
+      alert(result.error || 'Error occurred');
+    }
+  });
+</script>
+
 </body>
 </html>

@@ -97,7 +97,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
 
-  <script>
+  <!-- <script>
     const token = localStorage.getItem("token");
     if (!token) {
       alert("Please login first.");
@@ -169,6 +169,90 @@
         });
       });
     });
-  </script>
+  </script> -->
+
+  <!-- API base config -->
+<script src="config.js"></script>
+
+<script>
+  const token = localStorage.getItem("token");
+  if (!token) {
+    alert("Please login first.");
+    window.location.href = "/login.html";
+  }
+
+  async function loadRequests() {
+    const tokenPayload = JSON.parse(atob(token.split('.')[1]));
+    const loggedInEmail = tokenPayload.email;
+
+    const res = await fetch(`${API_BASE_URL}/api/requests`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const data = await res.json();
+
+    const tbody = document.getElementById('requestTable');
+    const counts = { Pending: 0, Activation: 0, Suspension: 0, Porting: 0 };
+    tbody.innerHTML = '';
+
+    data.forEach(req => {
+      if (req.email !== loggedInEmail) return;
+
+      const row = `<tr>
+        <td class="p-2">
+          <div>${req.employeeName}</div>
+          ${req.hod?.status === 'Approved' ? `
+            <div class="mt-1 text-xs text-green-700 dark:text-green-400">
+              ✅ <strong>HOD Approved</strong><br/>
+              <span><strong>Name:</strong> ${req.hod.name}</span><br/>
+              <span><strong>Email:</strong> ${req.hod.email}</span><br/>
+              <span><strong>Date:</strong> ${req.hod.approvalDate}</span>
+            </div>
+          ` : ''}
+        </td>
+        <td class="p-2">${req.mobile}</td>
+        <td class="p-2">${req.requestType}</td>
+        <td class="p-2">${req.status}</td>
+        <td class="p-2">
+          ${req.assignedSim
+            ? `<span class="text-green-600 font-medium">${req.assignedSim}</span>`
+            : `<span class="text-gray-400 italic">Pending</span>`}
+        </td>
+        <td class="p-2">${new Date(req.createdAt).toLocaleDateString()}</td>
+      </tr>`;
+
+      tbody.insertAdjacentHTML('beforeend', row);
+
+      if (req.status === 'Pending') counts.Pending++;
+      if (req.requestType === 'Activation') counts.Activation++;
+      if (req.requestType === 'Suspension') counts.Suspension++;
+      if (req.requestType === 'Porting') counts.Porting++;
+
+      if (req.assignedSim && !localStorage.getItem(`notified-${req._id}`)) {
+        alert(`🎉 SIM ${req.assignedSim} assigned to you!`);
+        localStorage.setItem(`notified-${req._id}`, true);
+      }
+    });
+
+    document.getElementById('pendingCount').textContent =
+      `${counts.Pending} awaiting approval`;
+    document.getElementById('activatedCount').textContent =
+      `${counts.Activation} activated`;
+    document.getElementById('suspendedCount').textContent =
+      `${counts.Suspension} temporarily suspended`;
+    document.getElementById('portingCount').textContent =
+      `${counts.Porting} in progress`;
+  }
+
+  $(document).ready(function () {
+    loadRequests().then(() => {
+      $('#simTable').DataTable({
+        dom: 'Bfrtip',
+        buttons: ['excelHtml5', 'pdfHtml5', 'print'],
+        pageLength: 5
+      });
+    });
+  });
+</script>
+
 </body>
 </html>

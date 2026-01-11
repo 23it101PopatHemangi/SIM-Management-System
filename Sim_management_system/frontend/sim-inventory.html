@@ -79,7 +79,7 @@
   </div>
 
 </body>
-<script>
+<!-- <script>
 document.getElementById("simInventoryForm").addEventListener("submit", async function (e) {
   e.preventDefault();
 
@@ -116,6 +116,49 @@ document.getElementById("simInventoryForm").addEventListener("submit", async fun
     alert("❌ Failed to submit SIM inventory.");
   }
 });
+</script> -->
+
+<script src="config.js"></script>
+
+<script>
+document.getElementById("simInventoryForm").addEventListener("submit", async function (e) {
+  e.preventDefault();
+
+  const token = localStorage.getItem("token");
+
+  const payload = {
+    simNumber: document.getElementById("simNumber").value,
+    mobileNumber: document.getElementById("mobileNumber").value,
+    provider: document.getElementById("provider").value,
+    status: document.getElementById("status").value,
+    assignedTo: document.getElementById("assignedTo").value,
+    remarks: document.getElementById("remarks").value
+  };
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/inventory`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      alert("✅ SIM inventory added successfully!");
+      e.target.reset();
+    } else {
+      alert(`❌ ${data.error || "Something went wrong."}`);
+    }
+  } catch (err) {
+    console.error("❌ Network/Server error:", err);
+    alert("❌ Failed to submit SIM inventory.");
+  }
+});
 </script>
+</body>
 
 </html>

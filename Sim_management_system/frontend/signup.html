@@ -57,7 +57,32 @@
     </p>
   </div>
 
-  <script>
+  <script src="config.js"></script>
+
+<script>
+  document.getElementById("signupForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const formData = Object.fromEntries(new FormData(e.target));
+
+    const res = await fetch(`${API_BASE_URL}/api/signup`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData)
+    });
+
+    const data = await res.json();
+    alert(data.message);
+
+    if (res.ok) {
+      window.location.href = "/login.html";
+    }
+  });
+</script>
+</body>
+</html>
+
+  <!-- <script>
     document.getElementById("signupForm").addEventListener("submit", async (e) => {
       e.preventDefault();
       const formData = Object.fromEntries(new FormData(e.target));
@@ -72,4 +97,4 @@
     });
   </script>
 </body>
-</html>
+</html> -->

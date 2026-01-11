@@ -174,7 +174,7 @@
     </section>
   </main>
 
-  <script>
+  <!-- <script>
     const token = localStorage.getItem("token");
 
     async function loadRequests() {
@@ -270,5 +270,109 @@
 
     window.onload = loadRequests;
   </script>
+</body>
+</html> -->
+
+<!-- API base config -->
+<script src="config.js"></script>
+
+<script>
+  const token = localStorage.getItem("token");
+
+  async function loadRequests() {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/requests`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      const data = await res.json();
+
+      const adminTable = document.getElementById("adminTable");
+      const pendingTable = document.getElementById("pendingTable");
+      const approvedTable = document.getElementById("approvedTable");
+      const rejectedTable = document.getElementById("rejectedTable");
+
+      adminTable.innerHTML = "";
+      pendingTable.innerHTML = "";
+      approvedTable.innerHTML = "";
+      rejectedTable.innerHTML = "";
+
+      let pending = 0, approved = 0, rejected = 0;
+
+      data.forEach(req => {
+        const row = `
+          <tr>
+            <td class="p-2">${req.employeeName}</td>
+            <td class="p-2">${req.mobile}</td>
+            <td class="p-2">${req.requestType}</td>
+            <td class="p-2">${req.status}</td>
+            <td class="p-2">${new Date(req.createdAt).toLocaleDateString()}</td>
+            <td class="p-2">
+              <button onclick="updateStatus('${req._id}', 'approve')" class="text-green-600 hover:underline">Approve</button> |
+              <button onclick="updateStatus('${req._id}', 'reject')" class="text-red-600 hover:underline">Reject</button>
+            </td>
+          </tr>
+        `;
+        adminTable.insertAdjacentHTML("beforeend", row);
+
+        const simpleRow = `
+          <tr>
+            <td class="p-2">${req.employeeName}</td>
+            <td class="p-2">${req.mobile}</td>
+            <td class="p-2">${req.requestType}</td>
+            <td class="p-2">${new Date(req.createdAt).toLocaleDateString()}</td>
+          </tr>
+        `;
+
+        if (req.status === "Pending") {
+          pendingTable.insertAdjacentHTML("beforeend", simpleRow);
+          pending++;
+        } else if (req.status === "Approved") {
+          approvedTable.insertAdjacentHTML("beforeend", simpleRow);
+          approved++;
+        } else if (req.status === "Rejected") {
+          rejectedTable.insertAdjacentHTML("beforeend", simpleRow);
+          rejected++;
+        }
+      });
+
+      document.getElementById("totalCount").textContent = data.length;
+      document.getElementById("pendingCount").textContent = pending;
+      document.getElementById("approvedCount").textContent = approved;
+      document.getElementById("rejectedCount").textContent = rejected;
+
+    } catch (err) {
+      console.error("❌ Failed to load requests:", err);
+    }
+  }
+
+  async function updateStatus(id, action) {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/requests/${id}/${action}`, {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      const result = await res.json();
+
+      if (res.ok) {
+        if (action === "approve") {
+          localStorage.setItem("assignRequestId", id);
+          window.location.href = "/assign-sim.html";
+        } else {
+          alert("✅ Request rejected successfully");
+          loadRequests();
+        }
+      } else {
+        alert("❌ " + result.error);
+      }
+    } catch (err) {
+      alert("❌ Action failed");
+      console.error(err);
+    }
+  }
+
+  window.onload = loadRequests;
+</script>
 </body>
 </html>

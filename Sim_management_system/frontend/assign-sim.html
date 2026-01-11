@@ -51,7 +51,7 @@
     <div id="message" class="text-sm mt-3 text-center font-medium"></div>
   </div>
 
-  <script>
+  <!-- <script>
   const token = localStorage.getItem("token");
 
   async function fetchRequests() {
@@ -145,4 +145,111 @@
 </script>
 
 </body>
+</html> -->
+
+<!-- API base config -->
+<script src="config.js"></script>
+
+<script>
+  const token = localStorage.getItem("token");
+
+  async function fetchRequests() {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/requests`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      const data = await res.json();
+      const approvedRequests = data.filter(
+        req => req.status === "Approved by Admin"
+      );
+
+      const select = document.getElementById("requestSelect");
+      select.innerHTML = '<option value="">-- Choose Request --</option>';
+
+      approvedRequests.forEach(req => {
+        const option = document.createElement("option");
+        option.value = req._id;
+        option.textContent = `${req.employeeName} - ${req.requestType}`;
+        select.appendChild(option);
+      });
+
+      const preselectId = localStorage.getItem("assignRequestId");
+      if (preselectId) {
+        select.value = preselectId;
+        localStorage.removeItem("assignRequestId");
+      }
+
+    } catch (error) {
+      alert("⚠️ Could not load requests. Please login again.");
+      localStorage.clear();
+      window.location.href = "/login.html";
+    }
+  }
+
+  async function fetchInventory() {
+    try {
+      const res = await fetch(
+        `${API_BASE_URL}/api/inventory?status=Available`
+      );
+      const data = await res.json();
+
+      const select = document.getElementById("simSelect");
+      select.innerHTML = '<option value="">-- Choose SIM --</option>';
+
+      data.forEach(sim => {
+        const option = document.createElement("option");
+        option.value = sim._id;
+        option.textContent = `${sim.simNumber} - ${sim.provider}`;
+        select.appendChild(option);
+      });
+    } catch (err) {
+      console.error("❌ Failed to load SIM inventory:", err);
+    }
+  }
+
+  document
+    .getElementById("assignSimForm")
+    .addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const simId = document.getElementById("simSelect").value;
+      const requestId = document.getElementById("requestSelect").value;
+
+      try {
+        const res = await fetch(
+          `${API_BASE_URL}/api/inventory/assign`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify({ simId, requestId })
+          }
+        );
+
+        const data = await res.json();
+        const msg = document.getElementById("message");
+
+        msg.textContent = res.ok
+          ? "✅ SIM assigned successfully."
+          : `❌ ${data.error}`;
+        msg.className = res.ok ? "text-green-500" : "text-red-500";
+
+        if (res.ok) {
+          fetchInventory();
+          document.getElementById("assignSimForm").reset();
+        }
+      } catch (err) {
+        console.error("❌ Assign SIM failed:", err);
+        alert("Something went wrong while assigning SIM.");
+      }
+    });
+
+  fetchRequests();
+  fetchInventory();
+</script>
+</body>
 </html>
+

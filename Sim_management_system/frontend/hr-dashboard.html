@@ -70,7 +70,7 @@
     </section>
   </main>
 
-  <script>
+  <!-- <script>
     const token = localStorage.getItem("token");
 
     async function loadRequests() {
@@ -135,6 +135,93 @@
     }
 
     window.onload = loadRequests;
-  </script>
+  </script> -->
+
+
+  <!-- API base config -->
+<script src="config.js"></script>
+
+<script>
+  const token = localStorage.getItem("token");
+
+  async function loadRequests() {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/requests`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      const data = await res.json();
+      const tbody = document.getElementById('hrTable');
+      tbody.innerHTML = '';
+
+      data.forEach(req => {
+        if (req.status !== 'HR Pending') return;
+
+        const hodStatus =
+          req.hod?.status === 'Approved'
+            ? `<span class="text-green-700 text-sm">✅ Approved by HOD</span>`
+            : '—';
+
+        const row = `
+          <tr>
+            <td class="p-2">${req.employeeName}</td>
+            <td class="p-2">${req.mobile}</td>
+            <td class="p-2">${req.requestType}</td>
+            <td class="p-2">${hodStatus}</td>
+            <td class="p-2">${req.status}</td>
+            <td class="p-2">${new Date(req.createdAt).toLocaleDateString()}</td>
+            <td class="p-2">
+              <button
+                onclick="redirectToForward('${req._id}')"
+                class="text-green-600 hover:underline">
+                Approve
+              </button>
+              |
+              <button
+                onclick="rejectRequest('${req._id}')"
+                class="text-red-600 hover:underline">
+                Reject
+              </button>
+            </td>
+          </tr>`;
+        tbody.insertAdjacentHTML('beforeend', row);
+      });
+    } catch (err) {
+      console.error('❌ Failed to load requests:', err);
+    }
+  }
+
+  function redirectToForward(requestId) {
+    window.location.href = `/sim-request-form.html?id=${requestId}`;
+  }
+
+  async function rejectRequest(id) {
+    try {
+      const res = await fetch(
+        `${API_BASE_URL}/api/requests/${id}/reject`,
+        {
+          method: 'PUT',
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      const result = await res.json();
+      if (res.ok) {
+        alert("❌ Request rejected");
+        loadRequests();
+      } else {
+        alert(`❌ ${result.error || 'Failed to reject'}`);
+      }
+    } catch (err) {
+      alert('❌ Error rejecting request');
+      console.error(err);
+    }
+  }
+
+  window.onload = loadRequests;
+</script>
+
 </body>
 </html>

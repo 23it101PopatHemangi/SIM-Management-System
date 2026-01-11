@@ -43,7 +43,7 @@
     </section>
   </main>
 
-  <script>
+  <!-- <script>
     async function loadRequests() {
       const res = await fetch('/api/requests', {
         headers: {
@@ -150,5 +150,137 @@
 
     loadRequests();
   </script>
+</body>
+</html> -->
+  <!-- API base config -->
+<script src="config.js"></script>
+
+<script>
+  async function loadRequests() {
+    const res = await fetch(`${API_BASE_URL}/api/requests`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`
+      }
+    });
+    const data = await res.json();
+    const pending = data.filter(req => req.status === 'HOD Pending');
+
+    const container = document.getElementById('requests');
+    container.innerHTML = '';
+
+    if (pending.length === 0) {
+      container.innerHTML =
+        '<p class="text-gray-600">No pending HOD requests.</p>';
+      return;
+    }
+
+    pending.forEach(req => {
+      const div = document.createElement('div');
+      div.className = 'bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md';
+
+      div.innerHTML = `
+        <h3 class="font-bold mb-2 text-blue-800">Request ID: ${req._id}</h3>
+        <p><strong>Employee Name:</strong> ${req.employeeName}</p>
+        <p><strong>Employee ID:</strong> ${req.employeeId}</p>
+        <p><strong>Email:</strong> ${req.email}</p>
+        <p><strong>Request Type:</strong> ${req.requestType}</p>
+        <p><strong>Justification:</strong> ${req.justification}</p>
+        <p><strong>Priority:</strong> ${req.priority}</p>
+        <p><strong>Document:</strong>
+          ${req.document
+            ? `<a href="${req.document}" target="_blank" class="text-blue-600 underline">View</a>`
+            : 'No document uploaded'}
+        </p>
+
+        <form onsubmit="handleApproval(event, '${req._id}')"
+              class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+          <input type="text" name="name" placeholder="HOD Name*" required class="border px-3 py-2 rounded" />
+          <input type="email" name="email" placeholder="HOD Email*" required class="border px-3 py-2 rounded" />
+          <input type="date" name="date" required class="border px-3 py-2 rounded col-span-2" />
+
+          <div class="col-span-2 flex space-x-4 mt-2">
+            <button type="submit"
+                    class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+              Approve
+            </button>
+            <button type="button"
+                    onclick="handleRejection(event, '${req._id}', this.form)"
+                    class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+              Reject
+            </button>
+          </div>
+        </form>
+      `;
+      container.appendChild(div);
+    });
+  }
+
+  async function handleApproval(event, id) {
+    event.preventDefault();
+    const form = event.target;
+    const token = localStorage.getItem('token');
+
+    const res = await fetch(
+      `${API_BASE_URL}/api/requests/${id}/hod-approve`,
+      {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          name: form.name.value,
+          email: form.email.value,
+          approvalDate: form.date.value
+        })
+      }
+    );
+
+    const result = await res.json();
+    if (res.ok) {
+      alert('✅ Request Approved!');
+      loadRequests();
+    } else {
+      alert('❌ ' + (result.error || 'Approval failed.'));
+    }
+  }
+
+  async function handleRejection(event, id, form) {
+    event.preventDefault();
+    const token = localStorage.getItem('token');
+
+    const res = await fetch(
+      `${API_BASE_URL}/api/requests/${id}/hod-reject`,
+      {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          name: form.name.value,
+          email: form.email.value,
+          approvalDate: form.date.value
+        })
+      }
+    );
+
+    const result = await res.json();
+    if (res.ok) {
+      alert('❌ Request Rejected');
+      loadRequests();
+    } else {
+      alert('❌ ' + (result.error || 'Rejection failed.'));
+    }
+  }
+
+  function logout() {
+    localStorage.removeItem('sim_user');
+    localStorage.removeItem('token');
+    window.location.href = 'login.html';
+  }
+
+  loadRequests();
+</script>
 </body>
 </html>

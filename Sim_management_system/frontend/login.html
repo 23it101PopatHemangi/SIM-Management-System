@@ -158,6 +158,7 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
 
   // ✅ Save auth
   localStorage.setItem("token", data.token);
+  localStorage.setItem("role", data.role); // ✅ REQUIRED for role checks
   localStorage.setItem(
     "sim_user",
     JSON.stringify({ email: formData.email, role: data.role })

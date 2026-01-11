@@ -831,20 +831,21 @@ const upload = multer({ storage });
 
 /* ------------------ MAILER (ONE TIME) ------------------ */
 const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: Number(process.env.SMTP_PORT),
-  secure: process.env.SMTP_SECURE === 'true',
+  host: 'smtp-relay.brevo.com',
+  port: 587,
+  secure: false,
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS
   }
 });
 
+
 // verify mail once
-transporter.verify(err => {
-  if (err) console.error('❌ SMTP Error:', err);
-  else console.log('✅ SMTP Ready');
-});
+// transporter.verify(err => {
+//   if (err) console.error('❌ SMTP Error:', err);
+//   else console.log('✅ SMTP Ready');
+// });
 
 /* ------------------ SCHEMAS ------------------ */
 const User = mongoose.model('User', new mongoose.Schema({

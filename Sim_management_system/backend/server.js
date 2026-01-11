@@ -1052,6 +1052,18 @@ app.post('/api/inventory/assign', verifyToken, requireRole('admin'), async (req,
   res.json({ message: 'SIM assigned' });
 });
 
+// ✅ GET ALL SIMs (Admin only)
+app.get('/api/inventory', verifyToken, requireRole('admin'), async (req, res) => {
+  try {
+    const sims = await SimInventory.find();
+    res.json(sims);
+  } catch (err) {
+    console.error("❌ Inventory fetch error:", err);
+    res.status(500).json({ error: 'Failed to fetch inventory' });
+  }
+});
+
+
 
 
 app.listen(PORT, () => console.log(`🚀 Backend running on ${PORT}`));

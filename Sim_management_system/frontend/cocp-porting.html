@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>COCP Porting</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f3f4f6;
+    }
+    .container {
+      max-width: 900px;
+      margin: 50px auto;
+      padding: 20px;
+      border: 2px solid black;
+      background: white;
+    }
+    label {
+      display: block;
+      margin-top: 20px;
+    }
+    input, select {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+    }
+    .submit-btn {
+      margin-top: 30px;
+      padding: 10px 30px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2 style="text-align:center;">COCP PORTING</h2>
+
+    <form action="#" method="post" enctype="multipart/form-data">
+      <label>Employee ID</label>
+      <input type="text" name="employeeId" required />
+
+      <label>Employee Name</label>
+      <input type="text" name="employeeName" required />
+
+      <label>Department</label>
+      <select name="department">
+        <option value="">-- Select Department --</option>
+        <option>HR</option>
+        <option>IT</option>
+        <option>Finance</option>
+      </select>
+
+      <label>Mobile Number</label>
+      <input type="text" name="mobileNumber" required />
+
+      <label>Reason for COCP Porting</label>
+      <input type="text" name="reason" required />
+
+      <label>Upload Govt. ID</label>
+      <input type="file" name="govtId" />
+
+      <label>Upload NOC</label>
+      <input type="file" name="noc" />
+
+      <button type="submit" class="submit-btn">SUBMIT</button>
+    </form>
+  </div>
+</body>
+</html>

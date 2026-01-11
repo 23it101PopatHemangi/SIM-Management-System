@@ -1035,10 +1035,6 @@ app.post('/api/inventory/assign', verifyToken, requireRole('admin'), async (req,
   res.json({ message: 'SIM assigned' });
 });
 
-/* ------------------ FRONTEND (LAST) ------------------ */
-app.use(express.static(path.join(__dirname, '../frontend')));
-app.get('*', (_, res) =>
-  res.sendFile(path.join(__dirname, '../frontend/login.html'))
-);
 
-app.listen(PORT, () => console.log(`🚀 Server running on ${PORT}`));
+
+app.listen(PORT, () => console.log(`🚀 Backend running on ${PORT}`));

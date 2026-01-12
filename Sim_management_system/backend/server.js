@@ -1132,20 +1132,25 @@ const storage = multer.diskStorage({
   filename: (_, file, cb) => cb(null, Date.now() + "_" + file.originalname)
 });
 const upload = multer({ storage });
-async function sendEmail({ subject, html }) {
+async function sendEmail({ to, subject, html }) {
   try {
+    const recipients = Array.isArray(to)
+      ? to
+      : to.split(",").map(e => e.trim());
+
     await resend.emails.send({
       from: "Nayara SIM Portal <onboarding@resend.dev>",
-      to: ["popathemangi458@gmail.com"], // <-- YOUR EMAIL ONLY
+      to: recipients,
       subject,
       html
     });
 
-    console.log("✅ Email sent to:", to);
+    console.log("✅ Email sent to:", recipients);
   } catch (error) {
     console.error("❌ Resend email failed:", error);
   }
 }
+
 
 
 /* ------------------ EMAIL (BREVO API) ------------------ */

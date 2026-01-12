@@ -187,10 +187,11 @@ document.addEventListener("DOMContentLoaded", () => {
             <td class="p-2">${new Date(req.createdAt).toLocaleDateString()}</td>
             <td class="p-2">
               <button
-                onclick="redirectToForward('${req._id}')"
-                class="text-green-600 hover:underline">
-                Approve
-              </button>
+              onclick="approveByHR('${req._id}')"
+              class="text-green-600 hover:underline">
+              Approve
+             </button>
+
               |
               <button
                 onclick="rejectRequest('${req._id}')"
@@ -206,10 +207,33 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  function redirectToForward(requestId) {
-    window.location.href = `/sim-request-form.html?id=${requestId}`;
-  }
+  async function approveByHR(requestId) {
+  try {
+    const res = await fetch(
+      `${API_BASE_URL}/api/requests/${requestId}/forward`,
+      {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    );
 
+    const result = await res.json();
+
+    if (res.ok) {
+      alert("✅ Request approved and forwarded to Admin");
+      loadRequests(); // refresh HR table
+    } else {
+      alert("❌ " + (result.error || "Approval failed"));
+    }
+  } catch (err) {
+    console.error("❌ HR approval failed:", err);
+    alert("❌ Server error while approving request");
+  }
+}
+
+  
   async function rejectRequest(id) {
     try {
       const res = await fetch(

@@ -1329,7 +1329,7 @@ app.post("/api/inventory/assign", verifyToken, requireRole("admin"), async (req,
 /* ------------------ TEST EMAIL ------------------ */
 app.get("/test-email", async (req, res) => {
   await sendEmail({
-    to: "popathemangi458@gmail.com",
+    to: "23it101@charusat.edu.in",
     subject: "🚀 TEST EMAIL FROM RENDER",
     html: "<h2>If you see this, email is FINALLY working 🎉</h2>"
   });

@@ -1107,17 +1107,9 @@ const jwt = require("jsonwebtoken");
 const multer = require("multer");
 //const axios = require("axios");
 require("dotenv").config();
-const nodemailer = require("nodemailer");
+const { Resend } = require("resend");
 
-const transporter = nodemailer.createTransport({
-  host: "smtp-relay.brevo.com",
-  port: 587,
-  secure: false,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS
-  }
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 
 const app = express();
@@ -1142,18 +1134,19 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 async function sendEmail({ to, subject, html }) {
   try {
-    await transporter.sendMail({
-      from: '"Nayara SIM Portal" <9fcf3d001@smtp-brevo.com>',
-      to,
+    await resend.emails.send({
+      from: "Nayara SIM Portal <onboarding@resend.dev>",
+      to: Array.isArray(to) ? to : [to],
       subject,
       html
     });
 
     console.log("✅ Email sent to:", to);
-  } catch (err) {
-    console.error("❌ Email send failed:", err.message);
+  } catch (error) {
+    console.error("❌ Resend email failed:", error);
   }
 }
+
 
 /* ------------------ EMAIL (BREVO API) ------------------ */
 // async function sendEmail({ to, subject, html }) {

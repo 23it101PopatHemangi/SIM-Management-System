@@ -1419,12 +1419,18 @@ app.post(
   }
 );
 app.get("/test-email", async (req, res) => {
-  await sendEmail({
-    to: "popathemangi458@gmail.com",
-    subject: "🚀 TEST EMAIL",
-    html: "<h1>EMAIL WORKING PERFECTLY</h1>"
-  });
-  res.send("Email sent");
+  try {
+    await sendEmail({
+      to: "popathemangi458@gmail.com",
+      subject: "🚀 TEST EMAIL FROM RENDER",
+      html: "<h2>If you see this, email is FINALLY working 🎉</h2>"
+
+    });
+    res.send("✅ Test email sent");
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("❌ Email failed");
+  }
 });
 
 

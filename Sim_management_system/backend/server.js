@@ -1117,6 +1117,14 @@ const transporter = nodemailer.createTransport({
     pass: process.env.SMTP_PASS
   }
 });
+async function createNotification({ userEmail, role, message }) {
+  await Notification.create({
+    userEmail,
+    role,
+    message
+  });
+}
+
 
 async function sendEmail({ to, subject, html }) {
   try {
@@ -1250,6 +1258,17 @@ const SimInventory = mongoose.model(
     createdAt: { type: Date, default: Date.now }
   })
 );
+const Notification = mongoose.model(
+  "Notification",
+  new mongoose.Schema({
+    userEmail: String,        // who should see it
+    message: String,          // notification text
+    role: String,             // hod / hr / admin / employee
+    isRead: { type: Boolean, default: false },
+    createdAt: { type: Date, default: Date.now }
+  })
+);
+
 
 /* ------------------ AUTH MIDDLEWARE ------------------ */
 function verifyToken(req, res, next) {
@@ -1303,6 +1322,12 @@ app.post(
       ...req.body,
       document: req.file ? `/uploads/${req.file.filename}` : ""
     });
+    await createNotification({
+  userEmail: process.env.HOD_EMAILS,
+  role: "hod",
+  message: `🔔 New SIM request from ${request.employeeName}`
+});
+
 
     await sendEmail({
       to: process.env.HOD_EMAILS,
@@ -1338,6 +1363,12 @@ app.put(
       },
       { new: true }
     );
+    await createNotification({
+  userEmail: process.env.HR_EMAILS,
+  role: "hr",
+  message: `✅ HOD approved SIM request for ${updated.employeeName}`
+});
+
 
     await sendEmail({
       to: process.env.HR_EMAILS,
@@ -1360,6 +1391,12 @@ app.put(
       { status: "Admin Pending" },
       { new: true }
     );
+    await createNotification({
+  userEmail: process.env.ADMIN_EMAILS,
+  role: "admin",
+  message: `📨 HR forwarded SIM request for ${updated.employeeName}`
+});
+
 
     await sendEmail({
       to: process.env.ADMIN_EMAILS,
@@ -1407,6 +1444,13 @@ app.post(
     reqq.status = "SIM Assigned";
     reqq.assignedSim = sim.simNumber;
     await reqq.save();
+  
+    await createNotification({
+  userEmail: reqq.email,
+  role: "employee",
+  message: `📲 SIM ${sim.simNumber} assigned successfully`
+});
+
 
     await sendEmail({
       to: reqq.email,
@@ -1417,6 +1461,21 @@ app.post(
     res.json({ message: "SIM assigned" });
   }
 );
+
+app.get("/api/notifications", verifyToken, async (req, res) => {
+  const notes = await Notification.find({
+    userEmail: req.user.email
+  }).sort({ createdAt: -1 });
+
+  res.json(notes);
+});
+
+app.put("/api/notifications/:id/read", verifyToken, async (req, res) => {
+  await Notification.findByIdAndUpdate(req.params.id, { isRead: true });
+  res.json({ message: "Notification read" });
+});
+
+
 app.get("/test-email", async (req, res) => {
   await sendEmail({
     to: "popathemangi458@gmail.com",

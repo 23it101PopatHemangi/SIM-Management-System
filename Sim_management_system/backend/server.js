@@ -1418,6 +1418,15 @@ app.post(
     res.json({ message: "SIM assigned" });
   }
 );
+app.get("/test-email", async (req, res) => {
+  await sendEmail({
+    to: "popathemangi458@gmail.com",
+    subject: "🚀 TEST EMAIL",
+    html: "<h1>EMAIL WORKING PERFECTLY</h1>"
+  });
+  res.send("Email sent");
+});
+
 
 /* ------------------ START ------------------ */
 app.listen(PORT, () =>

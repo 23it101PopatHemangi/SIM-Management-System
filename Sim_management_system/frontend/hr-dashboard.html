@@ -184,6 +184,15 @@ document.addEventListener("DOMContentLoaded", () => {
             <td class="p-2">${req.requestType}</td>
             <td class="p-2">${hodStatus}</td>
             <td class="p-2">${req.status}</td>
+            <td class="p-2">
+  <a
+    href="${API_BASE_URL}${req.document}"
+    target="_blank"
+    class="text-blue-600 underline">
+    View Document
+  </a>
+</td>
+
             <td class="p-2">${new Date(req.createdAt).toLocaleDateString()}</td>
             <td class="p-2">
               <button

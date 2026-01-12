@@ -1097,6 +1097,7 @@
 
 // app.listen(PORT, () => console.log(`🚀 Backend running on ${PORT}`));
 
+
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -1104,27 +1105,13 @@ const path = require("path");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const multer = require("multer");
+//const axios = require("axios");
 require("dotenv").config();
 const nodemailer = require("nodemailer");
 
-const app = express();
-const PORT = process.env.PORT || 5000;
-
-/* ------------------ MIDDLEWARE ------------------ */
-app.use(cors());
-app.use(express.json());
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-
-/* ------------------ MONGODB ------------------ */
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => console.log("✅ MongoDB connected"))
-  .catch(err => console.error("❌ Mongo error:", err));
-
-/* ------------------ MAIL CONFIG (NODEMAILER ONLY) ------------------ */
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
+  host: process.env.SMTP_HOST,
+  port: process.env.SMTP_PORT,
   secure: false,
   auth: {
     user: process.env.SMTP_USER,
@@ -1146,51 +1133,124 @@ async function sendEmail({ to, subject, html }) {
   }
 }
 
+
+
+
+const app = express();
+const PORT = process.env.PORT || 5000;
+
+/* ------------------ MIDDLEWARE ------------------ */
+app.use(cors());
+app.use(express.json());
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+/* ------------------ MONGODB ------------------ */
+mongoose
+  .connect(process.env.MONGO_URI)
+  .then(() => console.log("✅ MongoDB connected"))
+  .catch(err => console.error("❌ Mongo error:", err));
+
 /* ------------------ MULTER ------------------ */
 const storage = multer.diskStorage({
   destination: (_, __, cb) => cb(null, "uploads/"),
   filename: (_, file, cb) => cb(null, Date.now() + "_" + file.originalname)
 });
 const upload = multer({ storage });
+async function sendEmail({ to, subject, html }) {
+  try {
+    const recipients = Array.isArray(to)
+      ? to
+      : to.split(",").map(e => e.trim());
+
+    await resend.emails.send({
+      from: "Nayara SIM Portal <hemangipopat2005@gmail.com>",
+      to: recipients,
+      subject,
+      html
+    });
+
+    console.log("✅ Email sent to:", recipients);
+  } catch (error) {
+    console.error("❌ Resend email failed:", error);
+  }
+}
+
+
+
+/* ------------------ EMAIL (BREVO API) ------------------ */
+// async function sendEmail({ to, subject, html }) {
+//   try {
+//     await axios.post(
+//       "https://api.brevo.com/v3/smtp/email",
+//       {
+//         sender: {
+//           name: "Nayara SIM Portal",
+//           email: "no-reply@nayara.com"
+//         },
+//         to: [{ email: to }],
+//         subject,
+//         htmlContent: html
+//       },
+//       {
+//         headers: {
+//           "api-key": process.env.BREVO_API_KEY,
+//           "Content-Type": "application/json"
+//         }
+//       }
+//     );
+//     console.log("✅ Email sent to:", to);
+//   } catch (err) {
+//     console.error("❌ Email error:", err.response?.data || err.message);
+//   }
+// }
 
 /* ------------------ SCHEMAS ------------------ */
-const User = mongoose.model("User", new mongoose.Schema({
-  name: String,
-  email: { type: String, unique: true },
-  password: String,
-  role: String
-}));
-
-const SimRequest = mongoose.model("SimRequest", new mongoose.Schema({
-  employeeName: String,
-  employeeId: String,
-  mobile: String,
-  designation: String,
-  department: String,
-  email: String,
-  requestType: String,
-  justification: String,
-  duration: String,
-  priority: String,
-  document: String,
-  status: { type: String, default: "HOD Pending" },
-  hod: {
+const User = mongoose.model(
+  "User",
+  new mongoose.Schema({
     name: String,
-    email: String,
-    approvalDate: String,
-    status: String
-  },
-  assignedSim: String,
-  createdAt: { type: Date, default: Date.now }
-}));
+    email: { type: String, unique: true },
+    password: String,
+    role: String
+  })
+);
 
-const SimInventory = mongoose.model("SimInventory", new mongoose.Schema({
-  simNumber: String,
-  provider: String,
-  status: { type: String, default: "Available" },
-  assignedTo: String,
-  createdAt: { type: Date, default: Date.now }
-}));
+const SimRequest = mongoose.model(
+  "SimRequest",
+  new mongoose.Schema({
+    employeeName: String,
+    employeeId: String,
+    mobile: String,
+    designation: String,
+    department: String,
+    email: String,
+    requestType: String,
+    justification: String,
+    duration: String,
+    priority: String,
+    document: String,
+    status: { type: String, default: "HOD Pending" },
+    hod: {
+      name: String,
+      email: String,
+      approvalDate: String,
+      status: String
+    },
+    assignedSim: String,
+    createdAt: { type: Date, default: Date.now }
+  })
+);
+
+const SimInventory = mongoose.model(
+  "SimInventory",
+  new mongoose.Schema({
+    simNumber: String,
+    provider: String,
+    status: { type: String, default: "Available" },
+    assignedTo: String,
+    createdAt: { type: Date, default: Date.now }
+  })
+);
 
 /* ------------------ AUTH MIDDLEWARE ------------------ */
 function verifyToken(req, res, next) {
@@ -1235,20 +1295,25 @@ app.post("/api/login", async (req, res) => {
 });
 
 /* ------------------ EMPLOYEE → HOD ------------------ */
-app.post("/api/requests", verifyToken, upload.single("document"), async (req, res) => {
-  const request = await SimRequest.create({
-    ...req.body,
-    document: req.file ? `/uploads/${req.file.filename}` : ""
-  });
+app.post(
+  "/api/requests",
+  verifyToken,
+  upload.single("document"),
+  async (req, res) => {
+    const request = await SimRequest.create({
+      ...req.body,
+      document: req.file ? `/uploads/${req.file.filename}` : ""
+    });
 
-  await sendEmail({
-    to: process.env.HOD_EMAILS,
-    subject: "🔔 New SIM Request – HOD Approval",
-    html: `<p>Employee <b>${request.employeeName}</b> submitted a SIM request.</p>`
-  });
+    await sendEmail({
+      to: process.env.HOD_EMAILS,
+      subject: "🔔 New SIM Request – HOD Approval",
+      html: `<p>Employee ${request.employeeName} submitted a SIM request.</p>`
+    });
 
-  res.json({ message: "Request submitted", request });
-});
+    res.json({ message: "Request submitted", request });
+  }
+);
 
 /* ------------------ FETCH REQUESTS ------------------ */
 app.get("/api/requests", verifyToken, async (req, res) => {
@@ -1261,83 +1326,109 @@ app.get("/api/requests", verifyToken, async (req, res) => {
 });
 
 /* ------------------ HOD → HR ------------------ */
-app.put("/api/requests/:id/hod-approve", verifyToken, requireRole("hod"), async (req, res) => {
-  const updated = await SimRequest.findByIdAndUpdate(
-    req.params.id,
-    { status: "HR Pending", hod: { ...req.body, status: "Approved" } },
-    { new: true }
-  );
+app.put(
+  "/api/requests/:id/hod-approve",
+  verifyToken,
+  requireRole("hod"),
+  async (req, res) => {
+    const updated = await SimRequest.findByIdAndUpdate(
+      req.params.id,
+      {
+        status: "HR Pending",
+        hod: { ...req.body, status: "Approved" }
+      },
+      { new: true }
+    );
 
-  await sendEmail({
-    to: process.env.HR_EMAILS,
-    subject: "✅ SIM Request Approved by HOD",
-    html: `<p>HOD approved a SIM request.</p>`
-  });
+    await sendEmail({
+      to: process.env.HR_EMAILS,
+      subject: "✅ SIM Request Approved by HOD",
+      html: `<p>HOD approved a SIM request.</p>`
+    });
 
-  res.json(updated);
-});
+    res.json(updated);
+  }
+);
 
 /* ------------------ HR → ADMIN ------------------ */
-app.put("/api/requests/:id/forward", verifyToken, requireRole("hr"), async (req, res) => {
-  const updated = await SimRequest.findByIdAndUpdate(
-    req.params.id,
-    { status: "Admin Pending" },
-    { new: true }
-  );
+app.put(
+  "/api/requests/:id/forward",
+  verifyToken,
+  requireRole("hr"),
+  async (req, res) => {
+    const updated = await SimRequest.findByIdAndUpdate(
+      req.params.id,
+      { status: "Admin Pending" },
+      { new: true }
+    );
 
-  await sendEmail({
-    to: process.env.ADMIN_EMAILS,
-    subject: "📨 SIM Request Pending Admin Action",
-    html: `<p>HR forwarded a SIM request.</p>`
-  });
+    await sendEmail({
+      to: process.env.ADMIN_EMAILS,
+      subject: "📨 SIM Request Pending Admin Action",
+      html: `<p>HR forwarded a SIM request.</p>`
+    });
 
-  res.json(updated);
-});
+    res.json(updated);
+  }
+);
 
 /* ------------------ ADMIN INVENTORY ------------------ */
-app.post("/api/inventory", verifyToken, requireRole("admin"), async (req, res) => {
-  await SimInventory.create(req.body);
-  res.json({ message: "SIM added" });
-});
+app.post(
+  "/api/inventory",
+  verifyToken,
+  requireRole("admin"),
+  async (req, res) => {
+    await SimInventory.create(req.body);
+    res.json({ message: "SIM added" });
+  }
+);
 
-app.get("/api/inventory", verifyToken, requireRole("admin"), async (req, res) => {
-  res.json(await SimInventory.find());
-});
+app.get(
+  "/api/inventory",
+  verifyToken,
+  requireRole("admin"),
+  async (req, res) => {
+    res.json(await SimInventory.find());
+  }
+);
 
 /* ------------------ ADMIN ASSIGN SIM ------------------ */
-app.post("/api/inventory/assign", verifyToken, requireRole("admin"), async (req, res) => {
-  const sim = await SimInventory.findById(req.body.simId);
-  const reqq = await SimRequest.findById(req.body.requestId);
+app.post(
+  "/api/inventory/assign",
+  verifyToken,
+  requireRole("admin"),
+  async (req, res) => {
+    const sim = await SimInventory.findById(req.body.simId);
+    const reqq = await SimRequest.findById(req.body.requestId);
 
-  sim.status = "Assigned";
-  sim.assignedTo = reqq.employeeName;
-  await sim.save();
+    sim.status = "Assigned";
+    sim.assignedTo = reqq.employeeName;
+    await sim.save();
 
-  reqq.status = "SIM Assigned";
-  reqq.assignedSim = sim.simNumber;
-  await reqq.save();
+    reqq.status = "SIM Assigned";
+    reqq.assignedSim = sim.simNumber;
+    await reqq.save();
 
-  await sendEmail({
-    to: reqq.email,
-    subject: "📲 SIM Assigned",
-    html: `<p>Your SIM <b>${sim.simNumber}</b> has been assigned.</p>`
-  });
+    await sendEmail({
+      to: reqq.email,
+      subject: "📲 SIM Assigned",
+      html: `<p>Your SIM ${sim.simNumber} has been assigned.</p>`
+    });
 
-  res.json({ message: "SIM assigned" });
-});
-
-/* ------------------ TEST EMAIL ------------------ */
+    res.json({ message: "SIM assigned" });
+  }
+);
 app.get("/test-email", async (req, res) => {
   await sendEmail({
     to: "popathemangi458@gmail.com",
-    subject: "🚀 TEST EMAIL FROM RENDER",
-    html: "<h2>If you see this, email is FINALLY working 🎉</h2>"
+    subject: "🚀 TEST EMAIL",
+    html: "<h1>EMAIL WORKING PERFECTLY</h1>"
   });
-  res.send("✅ Test email sent");
+  res.send("Email sent");
 });
+
 
 /* ------------------ START ------------------ */
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-});
-
+app.listen(PORT, () =>
+  console.log(`🚀 Server running on port ${PORT}`)
+);

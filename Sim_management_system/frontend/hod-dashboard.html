@@ -187,9 +187,13 @@
         <p><strong>Justification:</strong> ${req.justification}</p>
         <p><strong>Priority:</strong> ${req.priority}</p>
         <p><strong>Document:</strong>
-          ${req.document
-            ? `<a href="${req.document}" target="_blank" class="text-blue-600 underline">View</a>`
-            : 'No document uploaded'}
+          <a
+  href="https://sim-management-system-backend.onrender.com${req.document}"
+  target="_blank"
+  class="text-blue-600 underline">
+  View Document
+</a>
+
         </p>
 
         <form onsubmit="handleApproval(event, '${req._id}')"

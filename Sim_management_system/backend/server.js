@@ -1165,7 +1165,7 @@ async function sendEmail({ to, subject, html }) {
       : to.split(",").map(e => e.trim());
 
     await resend.emails.send({
-      from: "Nayara SIM Portal <onboarding@resend.dev>",
+      from: "Nayara SIM Portal <hemangipopat2005@gmail.com>",
       to: recipients,
       subject,
       html

@@ -1132,11 +1132,11 @@ const storage = multer.diskStorage({
   filename: (_, file, cb) => cb(null, Date.now() + "_" + file.originalname)
 });
 const upload = multer({ storage });
-async function sendEmail({ to, subject, html }) {
+async function sendEmail({ subject, html }) {
   try {
     await resend.emails.send({
       from: "Nayara SIM Portal <onboarding@resend.dev>",
-      to: Array.isArray(to) ? to : [to],
+      to: ["popathemangi458@gmail.com"], // <-- YOUR EMAIL ONLY
       subject,
       html
     });

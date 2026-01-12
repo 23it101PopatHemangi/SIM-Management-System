@@ -1105,7 +1105,7 @@ const path = require("path");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const multer = require("multer");
-const axios = require("axios");
+//const axios = require("axios");
 require("dotenv").config();
 const nodemailer = require("nodemailer");
 
@@ -1140,33 +1140,47 @@ const storage = multer.diskStorage({
   filename: (_, file, cb) => cb(null, Date.now() + "_" + file.originalname)
 });
 const upload = multer({ storage });
-
-/* ------------------ EMAIL (BREVO API) ------------------ */
 async function sendEmail({ to, subject, html }) {
   try {
-    await axios.post(
-      "https://api.brevo.com/v3/smtp/email",
-      {
-        sender: {
-          name: "Nayara SIM Portal",
-          email: "no-reply@nayara.com"
-        },
-        to: [{ email: to }],
-        subject,
-        htmlContent: html
-      },
-      {
-        headers: {
-          "api-key": process.env.BREVO_API_KEY,
-          "Content-Type": "application/json"
-        }
-      }
-    );
+    await transporter.sendMail({
+      from: '"Nayara SIM Portal" <9fcf3d001@smtp-brevo.com>',
+      to,
+      subject,
+      html
+    });
+
     console.log("✅ Email sent to:", to);
   } catch (err) {
-    console.error("❌ Email error:", err.response?.data || err.message);
+    console.error("❌ Email send failed:", err.message);
   }
 }
+
+/* ------------------ EMAIL (BREVO API) ------------------ */
+// async function sendEmail({ to, subject, html }) {
+//   try {
+//     await axios.post(
+//       "https://api.brevo.com/v3/smtp/email",
+//       {
+//         sender: {
+//           name: "Nayara SIM Portal",
+//           email: "no-reply@nayara.com"
+//         },
+//         to: [{ email: to }],
+//         subject,
+//         htmlContent: html
+//       },
+//       {
+//         headers: {
+//           "api-key": process.env.BREVO_API_KEY,
+//           "Content-Type": "application/json"
+//         }
+//       }
+//     );
+//     console.log("✅ Email sent to:", to);
+//   } catch (err) {
+//     console.error("❌ Email error:", err.response?.data || err.message);
+//   }
+// }
 
 /* ------------------ SCHEMAS ------------------ */
 const User = mongoose.model(

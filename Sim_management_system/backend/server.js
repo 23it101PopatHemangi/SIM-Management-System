@@ -1098,348 +1098,6 @@
 // app.listen(PORT, () => console.log(`🚀 Backend running on ${PORT}`));
 
 
-// const express = require("express");
-// const mongoose = require("mongoose");
-// const cors = require("cors");
-// const path = require("path");
-// const bcrypt = require("bcryptjs");
-// const jwt = require("jsonwebtoken");
-// const multer = require("multer");
-// //const axios = require("axios");
-// require("dotenv").config();
-// const nodemailer = require("nodemailer");
-
-// const transporter = nodemailer.createTransport({
-//   host: process.env.SMTP_HOST,
-//   port: process.env.SMTP_PORT,
-//   secure: false,
-//   auth: {
-//     user: process.env.SMTP_USER,
-//     pass: process.env.SMTP_PASS
-//   }
-// });
-
-// async function sendEmail({ to, subject, html }) {
-//   try {
-//     await transporter.sendMail({
-//       from: `"Nayara SIM Portal" <${process.env.SMTP_USER}>`,
-//       to,
-//       subject,
-//       html
-//     });
-//     console.log("✅ Email actually sent to:", to);
-//   } catch (err) {
-//     console.error("❌ Email failed:", err);
-//   }
-// }
-
-
-
-
-// const app = express();
-// const PORT = process.env.PORT || 5000;
-
-// /* ------------------ MIDDLEWARE ------------------ */
-// app.use(cors());
-// app.use(express.json());
-// app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-
-// /* ------------------ MONGODB ------------------ */
-// mongoose
-//   .connect(process.env.MONGO_URI)
-//   .then(() => console.log("✅ MongoDB connected"))
-//   .catch(err => console.error("❌ Mongo error:", err));
-
-// /* ------------------ MULTER ------------------ */
-// const storage = multer.diskStorage({
-//   destination: (_, __, cb) => cb(null, "uploads/"),
-//   filename: (_, file, cb) => cb(null, Date.now() + "_" + file.originalname)
-// });
-// const upload = multer({ storage });
-// async function sendEmail({ to, subject, html }) {
-//   try {
-//     const recipients = Array.isArray(to)
-//       ? to
-//       : to.split(",").map(e => e.trim());
-
-//     await resend.emails.send({
-//       from: "Nayara SIM Portal <hemangipopat2005@gmail.com>",
-//       to: recipients,
-//       subject,
-//       html
-//     });
-
-//     console.log("✅ Email sent to:", recipients);
-//   } catch (error) {
-//     console.error("❌ Resend email failed:", error);
-//   }
-// }
-
-
-
-// /* ------------------ EMAIL (BREVO API) ------------------ */
-// // async function sendEmail({ to, subject, html }) {
-// //   try {
-// //     await axios.post(
-// //       "https://api.brevo.com/v3/smtp/email",
-// //       {
-// //         sender: {
-// //           name: "Nayara SIM Portal",
-// //           email: "no-reply@nayara.com"
-// //         },
-// //         to: [{ email: to }],
-// //         subject,
-// //         htmlContent: html
-// //       },
-// //       {
-// //         headers: {
-// //           "api-key": process.env.BREVO_API_KEY,
-// //           "Content-Type": "application/json"
-// //         }
-// //       }
-// //     );
-// //     console.log("✅ Email sent to:", to);
-// //   } catch (err) {
-// //     console.error("❌ Email error:", err.response?.data || err.message);
-// //   }
-// // }
-
-// /* ------------------ SCHEMAS ------------------ */
-// const User = mongoose.model(
-//   "User",
-//   new mongoose.Schema({
-//     name: String,
-//     email: { type: String, unique: true },
-//     password: String,
-//     role: String
-//   })
-// );
-
-// const SimRequest = mongoose.model(
-//   "SimRequest",
-//   new mongoose.Schema({
-//     employeeName: String,
-//     employeeId: String,
-//     mobile: String,
-//     designation: String,
-//     department: String,
-//     email: String,
-//     requestType: String,
-//     justification: String,
-//     duration: String,
-//     priority: String,
-//     document: String,
-//     status: { type: String, default: "HOD Pending" },
-//     hod: {
-//       name: String,
-//       email: String,
-//       approvalDate: String,
-//       status: String
-//     },
-//     assignedSim: String,
-//     createdAt: { type: Date, default: Date.now }
-//   })
-// );
-
-// const SimInventory = mongoose.model(
-//   "SimInventory",
-//   new mongoose.Schema({
-//     simNumber: String,
-//     provider: String,
-//     status: { type: String, default: "Available" },
-//     assignedTo: String,
-//     createdAt: { type: Date, default: Date.now }
-//   })
-// );
-
-// /* ------------------ AUTH MIDDLEWARE ------------------ */
-// function verifyToken(req, res, next) {
-//   const token = req.headers.authorization?.split(" ")[1];
-//   if (!token) return res.status(401).json({ error: "Unauthorized" });
-
-//   jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-//     if (err) return res.status(403).json({ error: "Invalid token" });
-//     req.user = user;
-//     next();
-//   });
-// }
-
-// const requireRole = role => (req, res, next) => {
-//   if (req.user.role.toLowerCase() !== role.toLowerCase()) {
-//     return res.status(403).json({ error: "Access denied" });
-//   }
-//   next();
-// };
-
-// /* ------------------ AUTH ------------------ */
-// app.post("/api/signup", async (req, res) => {
-//   const hashed = await bcrypt.hash(req.body.password, 10);
-//   await User.create({ ...req.body, password: hashed });
-//   res.json({ message: "Signup successful" });
-// });
-
-// app.post("/api/login", async (req, res) => {
-//   const user = await User.findOne({ email: req.body.email });
-//   if (!user) return res.status(404).json({ error: "User not found" });
-
-//   const ok = await bcrypt.compare(req.body.password, user.password);
-//   if (!ok) return res.status(400).json({ error: "Invalid credentials" });
-
-//   const token = jwt.sign(
-//     { id: user._id, email: user.email, role: user.role.toLowerCase() },
-//     process.env.JWT_SECRET,
-//     { expiresIn: "2h" }
-//   );
-
-//   res.json({ token, role: user.role });
-// });
-
-// /* ------------------ EMPLOYEE → HOD ------------------ */
-// app.post(
-//   "/api/requests",
-//   verifyToken,
-//   upload.single("document"),
-//   async (req, res) => {
-//     const request = await SimRequest.create({
-//       ...req.body,
-//       document: req.file ? `/uploads/${req.file.filename}` : ""
-//     });
-
-//     await sendEmail({
-//       to: process.env.HOD_EMAILS,
-//       subject: "🔔 New SIM Request – HOD Approval",
-//       html: `<p>Employee ${request.employeeName} submitted a SIM request.</p>`
-//     });
-
-//     res.json({ message: "Request submitted", request });
-//   }
-// );
-
-// /* ------------------ FETCH REQUESTS ------------------ */
-// app.get("/api/requests", verifyToken, async (req, res) => {
-//   let filter = {};
-//   if (req.user.role === "employee") filter.email = req.user.email;
-//   if (req.user.role === "hod") filter.status = "HOD Pending";
-//   if (req.user.role === "hr") filter.status = "HR Pending";
-
-//   res.json(await SimRequest.find(filter).sort({ createdAt: -1 }));
-// });
-
-// /* ------------------ HOD → HR ------------------ */
-// app.put(
-//   "/api/requests/:id/hod-approve",
-//   verifyToken,
-//   requireRole("hod"),
-//   async (req, res) => {
-//     const updated = await SimRequest.findByIdAndUpdate(
-//       req.params.id,
-//       {
-//         status: "HR Pending",
-//         hod: { ...req.body, status: "Approved" }
-//       },
-//       { new: true }
-//     );
-
-//     await sendEmail({
-//       to: process.env.HR_EMAILS,
-//       subject: "✅ SIM Request Approved by HOD",
-//       html: `<p>HOD approved a SIM request.</p>`
-//     });
-
-//     res.json(updated);
-//   }
-// );
-
-// /* ------------------ HR → ADMIN ------------------ */
-// app.put(
-//   "/api/requests/:id/forward",
-//   verifyToken,
-//   requireRole("hr"),
-//   async (req, res) => {
-//     const updated = await SimRequest.findByIdAndUpdate(
-//       req.params.id,
-//       { status: "Admin Pending" },
-//       { new: true }
-//     );
-
-//     await sendEmail({
-//       to: process.env.ADMIN_EMAILS,
-//       subject: "📨 SIM Request Pending Admin Action",
-//       html: `<p>HR forwarded a SIM request.</p>`
-//     });
-
-//     res.json(updated);
-//   }
-// );
-
-// /* ------------------ ADMIN INVENTORY ------------------ */
-// app.post(
-//   "/api/inventory",
-//   verifyToken,
-//   requireRole("admin"),
-//   async (req, res) => {
-//     await SimInventory.create(req.body);
-//     res.json({ message: "SIM added" });
-//   }
-// );
-
-// app.get(
-//   "/api/inventory",
-//   verifyToken,
-//   requireRole("admin"),
-//   async (req, res) => {
-//     res.json(await SimInventory.find());
-//   }
-// );
-
-// /* ------------------ ADMIN ASSIGN SIM ------------------ */
-// app.post(
-//   "/api/inventory/assign",
-//   verifyToken,
-//   requireRole("admin"),
-//   async (req, res) => {
-//     const sim = await SimInventory.findById(req.body.simId);
-//     const reqq = await SimRequest.findById(req.body.requestId);
-
-//     sim.status = "Assigned";
-//     sim.assignedTo = reqq.employeeName;
-//     await sim.save();
-
-//     reqq.status = "SIM Assigned";
-//     reqq.assignedSim = sim.simNumber;
-//     await reqq.save();
-
-//     await sendEmail({
-//       to: reqq.email,
-//       subject: "📲 SIM Assigned",
-//       html: `<p>Your SIM ${sim.simNumber} has been assigned.</p>`
-//     });
-
-//     res.json({ message: "SIM assigned" });
-//   }
-// );
-// app.get("/test-email", async (req, res) => {
-//   try {
-//     await sendEmail({
-//       to: "popathemangi458@gmail.com",
-//       subject: "🚀 TEST EMAIL FROM RENDER",
-//       html: "<h2>If you see this, email is FINALLY working 🎉</h2>"
-
-//     });
-//     res.send("✅ Test email sent");
-//   } catch (err) {
-//     console.error(err);
-//     res.status(500).send("❌ Email failed");
-//   }
-// });
-
-
-// /* ------------------ START ------------------ */
-// app.listen(PORT, () =>
-//   console.log(`🚀 Server running on port ${PORT}`)
-// );
-
-
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -1447,8 +1105,36 @@ const path = require("path");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const multer = require("multer");
+//const axios = require("axios");
 require("dotenv").config();
 const nodemailer = require("nodemailer");
+
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,
+  port: process.env.SMTP_PORT,
+  secure: false,
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS
+  }
+});
+
+async function sendEmail({ to, subject, html }) {
+  try {
+    await transporter.sendMail({
+      from: `"Nayara SIM Portal" <${process.env.SMTP_USER}>`,
+      to,
+      subject,
+      html
+    });
+    console.log("✅ Email actually sent to:", to);
+  } catch (err) {
+    console.error("❌ Email failed:", err);
+  }
+}
+
+
+
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -1470,31 +1156,53 @@ const storage = multer.diskStorage({
   filename: (_, file, cb) => cb(null, Date.now() + "_" + file.originalname)
 });
 const upload = multer({ storage });
-
-/* ------------------ NODEMAILER (FINAL) ------------------ */
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS
-  }
-});
-
 async function sendEmail({ to, subject, html }) {
   try {
-    await transporter.sendMail({
-      from: `"Nayara SIM Portal" <${process.env.SMTP_USER}>`,
-      to,
+    const recipients = Array.isArray(to)
+      ? to
+      : to.split(",").map(e => e.trim());
+
+    await resend.emails.send({
+      from: "Nayara SIM Portal <hemangipopat2005@gmail.com>",
+      to: recipients,
       subject,
       html
     });
-    console.log("✅ Email delivered to:", to);
-  } catch (err) {
-    console.error("❌ Email failed:", err);
+
+    console.log("✅ Email sent to:", recipients);
+  } catch (error) {
+    console.error("❌ Resend email failed:", error);
   }
 }
+
+
+
+/* ------------------ EMAIL (BREVO API) ------------------ */
+// async function sendEmail({ to, subject, html }) {
+//   try {
+//     await axios.post(
+//       "https://api.brevo.com/v3/smtp/email",
+//       {
+//         sender: {
+//           name: "Nayara SIM Portal",
+//           email: "no-reply@nayara.com"
+//         },
+//         to: [{ email: to }],
+//         subject,
+//         htmlContent: html
+//       },
+//       {
+//         headers: {
+//           "api-key": process.env.BREVO_API_KEY,
+//           "Content-Type": "application/json"
+//         }
+//       }
+//     );
+//     console.log("✅ Email sent to:", to);
+//   } catch (err) {
+//     console.error("❌ Email error:", err.response?.data || err.message);
+//   }
+// }
 
 /* ------------------ SCHEMAS ------------------ */
 const User = mongoose.model(
@@ -1599,8 +1307,8 @@ app.post(
 
     await sendEmail({
       to: process.env.HOD_EMAILS,
-      subject: "🔔 New SIM Request – HOD Action Needed",
-      html: `<p>Employee <b>${request.employeeName}</b> submitted a SIM request.</p>`
+      subject: "🔔 New SIM Request – HOD Approval",
+      html: `<p>Employee ${request.employeeName} submitted a SIM request.</p>`
     });
 
     res.json({ message: "Request submitted", request });
@@ -1613,6 +1321,7 @@ app.get("/api/requests", verifyToken, async (req, res) => {
   if (req.user.role === "employee") filter.email = req.user.email;
   if (req.user.role === "hod") filter.status = "HOD Pending";
   if (req.user.role === "hr") filter.status = "HR Pending";
+
   res.json(await SimRequest.find(filter).sort({ createdAt: -1 }));
 });
 
@@ -1624,14 +1333,17 @@ app.put(
   async (req, res) => {
     const updated = await SimRequest.findByIdAndUpdate(
       req.params.id,
-      { status: "HR Pending", hod: { ...req.body, status: "Approved" } },
+      {
+        status: "HR Pending",
+        hod: { ...req.body, status: "Approved" }
+      },
       { new: true }
     );
 
     await sendEmail({
       to: process.env.HR_EMAILS,
       subject: "✅ SIM Request Approved by HOD",
-      html: "<p>A SIM request has been approved by HOD.</p>"
+      html: `<p>HOD approved a SIM request.</p>`
     });
 
     res.json(updated);
@@ -1652,8 +1364,8 @@ app.put(
 
     await sendEmail({
       to: process.env.ADMIN_EMAILS,
-      subject: "📨 SIM Request Pending Admin Approval",
-      html: "<p>HR forwarded a SIM request.</p>"
+      subject: "📨 SIM Request Pending Admin Action",
+      html: `<p>HR forwarded a SIM request.</p>`
     });
 
     res.json(updated);
@@ -1661,14 +1373,24 @@ app.put(
 );
 
 /* ------------------ ADMIN INVENTORY ------------------ */
-app.post("/api/inventory", verifyToken, requireRole("admin"), async (req, res) => {
-  await SimInventory.create(req.body);
-  res.json({ message: "SIM added" });
-});
+app.post(
+  "/api/inventory",
+  verifyToken,
+  requireRole("admin"),
+  async (req, res) => {
+    await SimInventory.create(req.body);
+    res.json({ message: "SIM added" });
+  }
+);
 
-app.get("/api/inventory", verifyToken, requireRole("admin"), async (req, res) => {
-  res.json(await SimInventory.find());
-});
+app.get(
+  "/api/inventory",
+  verifyToken,
+  requireRole("admin"),
+  async (req, res) => {
+    res.json(await SimInventory.find());
+  }
+);
 
 /* ------------------ ADMIN ASSIGN SIM ------------------ */
 app.post(
@@ -1690,22 +1412,27 @@ app.post(
     await sendEmail({
       to: reqq.email,
       subject: "📲 SIM Assigned",
-      html: `<p>Your SIM <b>${sim.simNumber}</b> has been assigned.</p>`
+      html: `<p>Your SIM ${sim.simNumber} has been assigned.</p>`
     });
 
     res.json({ message: "SIM assigned" });
   }
 );
-
-/* ------------------ TEST EMAIL ------------------ */
 app.get("/test-email", async (req, res) => {
-  await sendEmail({
-    to: process.env.HOD_EMAILS,
-    subject: "🚀 TEST EMAIL",
-    html: "<h2>If you see this, email works 🎉</h2>"
-  });
-  res.send("✅ Test email sent");
+  try {
+    await sendEmail({
+      to: "popathemangi458@gmail.com",
+      subject: "🚀 TEST EMAIL FROM RENDER",
+      html: "<h2>If you see this, email is FINALLY working 🎉</h2>"
+
+    });
+    res.send("✅ Test email sent");
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("❌ Email failed");
+  }
 });
+
 
 /* ------------------ START ------------------ */
 app.listen(PORT, () =>

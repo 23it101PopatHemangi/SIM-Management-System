@@ -1127,15 +1127,13 @@ async function sendEmail({ to, subject, html }) {
       subject,
       html
     });
-    console.log("✅ Email delivered to:", to);
+    console.log("✅ Email actually sent to:", to);
   } catch (err) {
-    console.error("❌ Email failed:", err.message);
+    console.error("❌ Email failed:", err);
   }
 }
 
-const { Resend } = require("resend");
 
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 
 const app = express();

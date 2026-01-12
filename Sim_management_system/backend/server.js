@@ -1156,24 +1156,24 @@ const storage = multer.diskStorage({
   filename: (_, file, cb) => cb(null, Date.now() + "_" + file.originalname)
 });
 const upload = multer({ storage });
-async function sendEmail({ to, subject, html }) {
-  try {
-    const recipients = Array.isArray(to)
-      ? to
-      : to.split(",").map(e => e.trim());
+// async function sendEmail({ to, subject, html }) {
+//   try {
+//     const recipients = Array.isArray(to)
+//       ? to
+//       : to.split(",").map(e => e.trim());
 
-    await resend.emails.send({
-      from: "Nayara SIM Portal <hemangipopat2005@gmail.com>",
-      to: recipients,
-      subject,
-      html
-    });
+//     await resend.emails.send({
+//       from: "Nayara SIM Portal <hemangipopat2005@gmail.com>",
+//       to: recipients,
+//       subject,
+//       html
+//     });
 
-    console.log("✅ Email sent to:", recipients);
-  } catch (error) {
-    console.error("❌ Resend email failed:", error);
-  }
-}
+//     console.log("✅ Email sent to:", recipients);
+//   } catch (error) {
+//     console.error("❌ Resend email failed:", error);
+//   }
+// }
 
 
 

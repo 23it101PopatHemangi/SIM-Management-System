@@ -217,6 +217,28 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  async function loadNotifications() {
+  const res = await fetch(`${API_BASE_URL}/api/notifications`, {
+    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+  });
+
+  const data = await res.json();
+  const box = document.getElementById("notificationBox");
+  box.innerHTML = "";
+
+  data.forEach(n => {
+    box.innerHTML += `
+      <div class="p-3 border-b ${n.isRead ? 'opacity-60' : 'font-semibold'}">
+        ${n.message}
+        <div class="text-xs text-gray-500">
+          ${new Date(n.createdAt).toLocaleString()}
+        </div>
+      </div>
+    `;
+  });
+}
+
+
   async function approveByHR(requestId) {
   try {
     const res = await fetch(
@@ -268,6 +290,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   window.onload = loadRequests;
+  loadNotifications();
 </script>
 
 </body>

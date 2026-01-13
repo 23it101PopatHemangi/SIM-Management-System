@@ -57,6 +57,15 @@ document.addEventListener("DOMContentLoaded", () => {
   <main class="flex-1 p-8 space-y-6">
     <div class="flex justify-between items-center">
       <h2 class="text-2xl font-semibold">Welcome, HR 👩‍💼</h2>
+      <section class="mt-6">
+  <h3 class="text-lg font-semibold mb-2">Notifications</h3>
+  <div
+    id="notificationBox"
+    class="bg-white dark:bg-gray-800 rounded shadow p-4 text-sm">
+    <p class="text-gray-500">No new notifications</p>
+  </div>
+</section>
+
       <div class="bg-white dark:bg-gray-800 px-4 py-2 rounded shadow text-gray-600 dark:text-gray-300">Role: HR</div>
     </div>
 
@@ -81,14 +90,9 @@ document.addEventListener("DOMContentLoaded", () => {
         </table>
       </div>
       <!-- Notifications -->
-<section class="mt-6">
-  <h3 class="text-lg font-semibold mb-2">Notifications</h3>
-  <div
-    id="notificationBox"
-    class="bg-white dark:bg-gray-800 rounded shadow max-h-60 overflow-y-auto">
-    <p class="p-3 text-sm text-gray-500">No notifications</p>
-  </div>
-</section>
+       <section class="mt-6">
+  
+
 
     </section>
   </main>
@@ -227,43 +231,33 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  async function loadNotifications() {
+ function showNotificationsFromRequests(requests, role) {
   const box = document.getElementById("notificationBox");
+  if (!box) return;
 
-  if (!box) {
-    console.warn("⚠ notificationBox not found");
-    return;
-  }
+  box.innerHTML = "";
+  let count = 0;
 
-  try {
-    const res = await fetch(`${API_BASE_URL}/api/notifications`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`
-      }
-    });
-
-    const data = await res.json();
-    box.innerHTML = "";
-
-    if (!data.length) {
-      box.innerHTML = `<p class="p-3 text-sm text-gray-500">No notifications</p>`;
-      return;
-    }
-
-    data.forEach(n => {
+  requests.forEach(req => {
+    if (
+      (role === "hod" && req.status === "HOD Pending") ||
+      (role === "hr" && req.status === "HR Pending") ||
+      (role === "admin" && req.status === "Admin Pending")
+    ) {
+      count++;
       box.innerHTML += `
-        <div class="p-3 border-b ${n.isRead ? 'opacity-60' : 'font-semibold'}">
-          ${n.message}
-          <div class="text-xs text-gray-500">
-            ${new Date(n.createdAt).toLocaleString()}
-          </div>
+        <div class="mb-2 p-2 border rounded bg-yellow-50">
+          🔔 SIM request from <b>${req.employeeName}</b> is awaiting your action
         </div>
       `;
-    });
-  } catch (err) {
-    console.error("❌ Failed to load notifications:", err);
+    }
+  });
+
+  if (count === 0) {
+    box.innerHTML = `<p class="text-gray-500">No new notifications</p>`;
   }
 }
+
 
 
 
@@ -319,7 +313,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   window.onload = () => {
   loadRequests();
-  loadNotifications();
+  //loadNotifications();
+  const user = JSON.parse(localStorage.getItem("sim_user"));
+showNotificationsFromRequests(data, user.role.toLowerCase());
+
 };
 
 </script>

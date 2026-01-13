@@ -80,6 +80,16 @@ document.addEventListener("DOMContentLoaded", () => {
           </tbody>
         </table>
       </div>
+      <!-- Notifications -->
+<section class="mt-6">
+  <h3 class="text-lg font-semibold mb-2">Notifications</h3>
+  <div
+    id="notificationBox"
+    class="bg-white dark:bg-gray-800 rounded shadow max-h-60 overflow-y-auto">
+    <p class="p-3 text-sm text-gray-500">No notifications</p>
+  </div>
+</section>
+
     </section>
   </main>
 
@@ -218,25 +228,43 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function loadNotifications() {
-  const res = await fetch(`${API_BASE_URL}/api/notifications`, {
-    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-  });
-
-  const data = await res.json();
   const box = document.getElementById("notificationBox");
-  box.innerHTML = "";
 
-  data.forEach(n => {
-    box.innerHTML += `
-      <div class="p-3 border-b ${n.isRead ? 'opacity-60' : 'font-semibold'}">
-        ${n.message}
-        <div class="text-xs text-gray-500">
-          ${new Date(n.createdAt).toLocaleString()}
+  if (!box) {
+    console.warn("⚠ notificationBox not found");
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/notifications`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`
+      }
+    });
+
+    const data = await res.json();
+    box.innerHTML = "";
+
+    if (!data.length) {
+      box.innerHTML = `<p class="p-3 text-sm text-gray-500">No notifications</p>`;
+      return;
+    }
+
+    data.forEach(n => {
+      box.innerHTML += `
+        <div class="p-3 border-b ${n.isRead ? 'opacity-60' : 'font-semibold'}">
+          ${n.message}
+          <div class="text-xs text-gray-500">
+            ${new Date(n.createdAt).toLocaleString()}
+          </div>
         </div>
-      </div>
-    `;
-  });
+      `;
+    });
+  } catch (err) {
+    console.error("❌ Failed to load notifications:", err);
+  }
 }
+
 
 
   async function approveByHR(requestId) {
@@ -289,8 +317,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  window.onload = loadRequests;
+  window.onload = () => {
+  loadRequests();
   loadNotifications();
+};
+
 </script>
 
 </body>

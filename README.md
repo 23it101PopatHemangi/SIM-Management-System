@@ -1,4 +1,3 @@
-```markdown
 # 📱 SIM Management System
 
 A full-stack **SIM Management System** built to automate and manage the complete SIM lifecycle within an organization.  
@@ -133,5 +132,4 @@ This project is developed for academic and learning purposes.
 Any security warnings shown by GitHub are related to dependency scanning and do **not** impact the deployed application.
  
 
-Just tell me, QT 😊
-```
+
